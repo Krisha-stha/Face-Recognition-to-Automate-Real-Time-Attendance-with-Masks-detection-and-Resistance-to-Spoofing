@@ -223,7 +223,7 @@ class Student:
         f_lbl.place(x=5,y=0,width=720,height=130) 
 
         #Search System
-
+        
 
 
 if __name__ == "__main__":
