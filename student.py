@@ -464,9 +464,6 @@ class Student:
         self.var_teacher.set("")
         self.var_radio1.set("")
 
-
-
-
 if __name__ == "__main__":
     root= Tk()
     obj = Student(root)
