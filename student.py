@@ -28,7 +28,7 @@ class Student:
         self.var_teacher = StringVar()
         
         # first image
-        img = Image.open(r"C:\Users\Acer\Desktop\FaceRecognition\my_images\student_image1.jpeg")
+        img = Image.open(r"my_images\student_image1.jpeg")
         img = img.resize((500, 130),Image.ANTIALIAS)
         self.photoimg=ImageTk.PhotoImage(img)
 
@@ -36,7 +36,7 @@ class Student:
         f_lbl.place(x=0,y=0,width=500,height=130) 
 
         # second image
-        img1 = Image.open(r"C:\Users\Acer\Desktop\FaceRecognition\my_images\student_image1.jpeg")
+        img1 = Image.open(r"my_images\student_image1.jpeg")
         img1 = img1.resize((500, 130),Image.ANTIALIAS)
         self.photoimg1=ImageTk.PhotoImage(img1)
 
@@ -44,7 +44,7 @@ class Student:
         f_lbl.place(x=500,y=0,width=500,height=130) 
 
         # third image
-        img2 = Image.open(r"C:\Users\Acer\Desktop\FaceRecognition\my_images\student_image1.jpeg")
+        img2 = Image.open(r"my_images\student_image1.jpeg")
         img2 = img2.resize((500, 130),Image.ANTIALIAS)
         self.photoimg2=ImageTk.PhotoImage(img2)
 
@@ -52,7 +52,7 @@ class Student:
         f_lbl.place(x=1000,y=0,width=500,height=130) 
 
         # background image
-        img3 = Image.open(r"C:\Users\Acer\Desktop\FaceRecognition\my_images\bgimg.jpeg")
+        img3 = Image.open(r"my_images\bgimg.jpeg")
         img3 = img3.resize((1530, 710),Image.ANTIALIAS)
         self.photoimg3=ImageTk.PhotoImage(img3)
 
@@ -69,7 +69,7 @@ class Student:
         Left_frame = LabelFrame(main_frame, bd=2, bg="white", relief=RIDGE, text="Student Details", font=("times new roman", 12, "bold"))
         Left_frame.place(x=10, y=10, width=760, height=580)
 
-        img_left = Image.open(r"C:\Users\Acer\Desktop\FaceRecognition\my_images\details.jpeg")
+        img_left = Image.open(r"my_images\details.jpeg")
         img_left = img_left.resize((720, 130),Image.ANTIALIAS)
         self.photoimg_left=ImageTk.PhotoImage(img_left)
 
@@ -246,7 +246,7 @@ class Student:
         Right_frame.place(x=780, y=10, width=660, height=580)
 
         #Image for right
-        img_right = Image.open(r"C:\Users\Acer\Desktop\FaceRecognition\my_images\details.jpeg")
+        img_right = Image.open(r"my_images\details.jpeg")
         img_right = img_right.resize((720, 130),Image.ANTIALIAS)
         self.photoimg_right=ImageTk.PhotoImage(img_right)
 
