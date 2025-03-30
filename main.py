@@ -105,10 +105,10 @@ class Face_Recognition_System:
         photos = photos.resize((220, 220),Image.ANTIALIAS)
         self.photos=ImageTk.PhotoImage(photos)
 
-        button = Button(bg_image,image=self.photos, cursor="hand2")
+        button = Button(bg_image,image=self.photos, cursor="hand2", command=self.open_img)
         button.place(x=500, y=380, width=220, height=220)
 
-        button4 = Button(bg_image,text="Photos", cursor="hand2", font = ("times new roman", 15, "bold"),bg = "white", fg = "pink")
+        button4 = Button(bg_image,text="Photos", cursor="hand2", command=self.open_img, font = ("times new roman", 15, "bold"),bg = "white", fg = "pink")
         button4.place(x=500, y=580, width=220, height=40)
 
         #develop
