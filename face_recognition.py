@@ -40,9 +40,34 @@ class Face_Recognition:
     ############################## FACE RECOGNITION ############################################### 
 
     def face_recog(self):
-        def draw_boundary(img, classifier, scaleFactor, minNeighbors, color, text, cif):
+        def draw_boundary(img, classifier, scaleFactor, minNeighbors, color, text, clf):
             gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             features = classifier.detectMultiScale(gray_image,scaleFactor,minNeighbors)
+
+            coord = []
+
+            for (x,y,w,h) in features:
+                cv2.rectangle(img(x,y), (x+w,y+h),(0,255,0),3)
+                id,predict=clf.predict(gray_image[y:y+h, x:x+w])
+                confidence = int((100*(1-predict/300)))
+
+                conn=mysql.connector.connect(host="localhost", user = "root", password = "krisha123", database="face_recognition")
+                my_cursor = conn.cursor()
+
+                my_cursor.execute("select Name from student where Student_id="+str(id))
+                n=my_cursor.fetchone()
+                n="+".join(n)
+
+                my_cursor.execute("select Roll from student where Student_id="+str(id))
+                r=my_cursor.fetchone()
+                r="+".join(r)
+
+                my_cursor.execute("select Dep from student where Student_id="+str(id))
+                d=my_cursor.fetchone()
+                d="+".join(d)
+
+                if confidence>77:
+
         
 
 
