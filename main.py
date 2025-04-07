@@ -63,10 +63,10 @@ class Face_Recognition_System:
         facedetect = facedetect.resize((220, 220),Image.ANTIALIAS)
         self.detectface=ImageTk.PhotoImage(facedetect)
 
-        button = Button(bg_image,image=self.detectface, cursor="hand2")
+        button = Button(bg_image,image=self.detectface, cursor="hand2",command=self.face_data)
         button.place(x=500, y=100, width=220, height=220)
 
-        button2 = Button(bg_image,text="Face Detector", cursor="hand2", font = ("times new roman", 15, "bold"),bg = "white", fg = "pink")
+        button2 = Button(bg_image,text="Face Detector", cursor="hand2", command=self.face_data,font = ("times new roman", 15, "bold"),bg = "white", fg = "pink")
         button2.place(x=500, y=300, width=220, height=40)
 
          # Attendance button
@@ -148,6 +148,10 @@ class Face_Recognition_System:
     def train_data(self):
         self.new_window=Toplevel(self.root)
         self.app=Train(self.new_window)
+
+    def face_data(self):
+        self.new_window=Toplevel(self.root)
+        self.app=Face_Recognition(self.new_window)
     
 
 if __name__ == "__main__":
