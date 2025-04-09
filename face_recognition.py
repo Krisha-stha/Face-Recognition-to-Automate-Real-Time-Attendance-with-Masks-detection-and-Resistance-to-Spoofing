@@ -67,6 +67,26 @@ class Face_Recognition:
                 d="+".join(d)
 
                 if confidence>77:
+                    cv2.putText(img,f"Roll:{r}",(x,y-55), cv2.FONT_HERSHEY_COMPLEX, 0.8,(255,255,255),3)
+                    cv2.putText(img,f"Name:{n}",(x,y-30), cv2.FONT_HERSHEY_COMPLEX, 0.8,(255,255,255),3)
+                    cv2.putText(img,f"Department:{d}",(x,y-5), cv2.FONT_HERSHEY_COMPLEX, 0.8,(255,255,255),3)
+                else:
+                    cv2.rectangle(img(x,y), (x+w,y+h),(0,0,255),3)
+                    cv2.putText(img,f"Unknown Face",(x,y-5), cv2.FONT_HERSHEY_COMPLEX, 0.8,(255,255,255),3)
+                  
+                coords=[x,y,w,h]
+
+            return coord
+        
+        def recognize(img,clf,faceCascade):
+            coord = draw_boundary(img,faceCascade,1.1,10,(255,255,255),"Face", clf)
+            return img
+        
+        faceCascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
+        clf = cv2.face.LBPHFaceRecognizer_create()
+
+
+
 
         
 
