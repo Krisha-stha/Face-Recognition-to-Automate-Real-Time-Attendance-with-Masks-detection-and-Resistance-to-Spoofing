@@ -93,7 +93,8 @@ class Face_Recognition:
             img = recognize(img,clf,faceCascade)
             cv2.imshow("Welcome", img)
 
-            if cv2.waitKey(1)==13:
+            key = cv2.waitKey(1) & 0xFF
+            if key == ord('q') or key == 27:  # <--- Changed this line
                 break
 
         video_cap.release()
