@@ -33,7 +33,7 @@ class Face_Recognition:
         f_lbl.place(x=650,y=60,width=950,height=700) 
 
         #button
-        button1 = Button(f_lbl,text="Face Recognition", cursor="hand2", font = ("times new roman", 18, "bold"),bg = "white", fg = "pink")
+        button1 = Button(f_lbl,text="Face Recognition", command=self.face_recog, cursor="hand2", font = ("times new roman", 18, "bold"),bg = "white", fg = "pink")
         button1.place(x=350, y=600, width=200, height=40)
 
 
@@ -47,7 +47,7 @@ class Face_Recognition:
             coord = []
 
             for (x,y,w,h) in features:
-                cv2.rectangle(img(x,y), (x+w,y+h),(0,255,0),3)
+                cv2.rectangle(img, (x,y), (x+w,y+h),(0,255,0),3)
                 id,predict=clf.predict(gray_image[y:y+h, x:x+w])
                 confidence = int((100*(1-predict/300)))
 
@@ -71,7 +71,7 @@ class Face_Recognition:
                     cv2.putText(img,f"Name:{n}",(x,y-30), cv2.FONT_HERSHEY_COMPLEX, 0.8,(255,255,255),3)
                     cv2.putText(img,f"Department:{d}",(x,y-5), cv2.FONT_HERSHEY_COMPLEX, 0.8,(255,255,255),3)
                 else:
-                    cv2.rectangle(img(x,y), (x+w,y+h),(0,0,255),3)
+                    cv2.rectangle(img,(x,y), (x+w,y+h),(0,0,255),3)
                     cv2.putText(img,f"Unknown Face",(x,y-5), cv2.FONT_HERSHEY_COMPLEX, 0.8,(255,255,255),3)
                   
                 coords=[x,y,w,h]
@@ -84,6 +84,22 @@ class Face_Recognition:
         
         faceCascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
         clf = cv2.face.LBPHFaceRecognizer_create()
+        clf.read("classifier.xml")
+
+        video_cap=cv2.VideoCapture(0)
+
+        while True:
+            ret, img=video_cap.read()
+            img = recognize(img,clf,faceCascade)
+            cv2.imshow("Welcome", img)
+
+            if cv2.waitKey(1)==13:
+                break
+
+        video_cap.release()
+        cv2.destroyAllWindows()
+
+
 
 
 
