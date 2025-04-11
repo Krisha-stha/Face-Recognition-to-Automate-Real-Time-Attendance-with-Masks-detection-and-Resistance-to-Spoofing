@@ -38,7 +38,7 @@ class Face_Recognition:
         button1 = Button(f_lbl,text="Face Recognition", command=self.face_recog, cursor="hand2", font = ("times new roman", 18, "bold"),bg = "white", fg = "pink")
         button1.place(x=350, y=600, width=200, height=40)
 
-    ##################### ATTENDANCE ##################################3
+    ############################## ATTENDANCE ##############################
     def mark_attendance(self, i, r, n, d):
         with open("todaysattendance.csv", "r+", newline="\n") as f:
             myDataList=f.readlines()
@@ -53,7 +53,7 @@ class Face_Recognition:
                 f.writelines(f"\n{i},{r},{n},{d},{dtString},{d1},Present")
 
 
-    ############################## FACE RECOGNITION ############################################### 
+    ############################## FACE RECOGNITION ############################## 
 
     def face_recog(self):
         def draw_boundary(img, classifier, scaleFactor, minNeighbors, color, text, clf):
@@ -116,7 +116,7 @@ class Face_Recognition:
             cv2.imshow("Welcome", img)
 
             key = cv2.waitKey(1) & 0xFF
-            if key == ord('q') or key == 27:  # <--- Changed this line
+            if key == ord('q') or key == 27:  
                 break
 
         video_cap.release()

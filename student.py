@@ -273,6 +273,8 @@ class Student:
 
         showAll_btn=Button(search_frame, text="Show All", width = 12, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
         showAll_btn.grid(row=0, column=4, padx = 4)
+
+        ##left##
        
         # table frame
         table_frame = Frame(Right_frame, bd=2, bg="white", relief=RIDGE)
