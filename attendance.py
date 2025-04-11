@@ -104,6 +104,26 @@ class Attendance:
         self.atten_status.grid(row=3 ,column=1, padx=10, pady=5, sticky = W)
         self.atten_status.current(0)
 
+        #buttons Frame
+        btn_frame = Frame(left_inside_frame, bd=2, relief=RIDGE, bg="white")
+        btn_frame.place(x=0, y=200, width=715, height=35)
+
+        #Save
+        save_btn=Button(btn_frame, text="Save", width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
+        save_btn.grid(row=0, column=0)
+
+        # Update
+        update_btn=Button(btn_frame, text="Update", width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
+        update_btn.grid(row=0, column=1)
+
+        # Delete
+        delete_btn=Button(btn_frame, text="Delete", width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
+        delete_btn.grid(row=0, column=2)
+
+        # Reset
+        reset_btn=Button(btn_frame, text="Reset", width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
+        reset_btn.grid(row=0, column=3)
+
         # right label frame
         Right_frame = LabelFrame(main_frame, bd=2, bg="white", relief=RIDGE, text="Attendance Details", font=("times new roman", 12, "bold"))
         Right_frame.place(x=780, y=10, width=660, height=580)
