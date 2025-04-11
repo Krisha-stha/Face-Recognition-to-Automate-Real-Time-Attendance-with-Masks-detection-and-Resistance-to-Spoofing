@@ -42,8 +42,76 @@ class Attendance:
         Left_frame = LabelFrame(main_frame, bd=2, bg="white", relief=RIDGE, text="Attendance Details", font=("times new roman", 12, "bold"))
         Left_frame.place(x=10, y=10, width=760, height=580)
 
+        img_left = Image.open(r"my_images\details.jpeg")
+        img_left = img_left.resize((720, 130),Image.ANTIALIAS)
+        self.photoimg_left=ImageTk.PhotoImage(img_left)
+        
+        f_lbl = Label(Left_frame,image=self.photoimg_left)
+        f_lbl.place(x=5,y=0,width=720,height=130) 
+
+        left_inside_frame=Frame(Left_frame, bd=2, relief=RIDGE ,bg="white")
+        left_inside_frame.place(x=10, y=135, width=720, height=300)
+
+        ######Labels and entry#######
+        #Attendance  ID
+        attendanceID_label = Label(left_inside_frame, text="AttendanceId", font = ("times new roman", 12, "bold"), bg="white")
+        attendanceID_label.grid(row=0,column=0, padx=10, pady=5, sticky  =W)
+
+        attendanceID_entry = ttk.Entry(left_inside_frame, width=20,font = ("times new roman", 12, "bold"))
+        attendanceID_entry.grid(row=0, column=1, padx=10, pady=5, sticky = W)
+
+        #  Roll
+        rollLabel = Label(left_inside_frame, text="Roll:", font = ("times new roman", 12, "bold"), bg="white")
+        rollLabel.grid(row=0,column=2, padx=10, pady=8, sticky  =W)
+
+        atten_roll = ttk.Entry(left_inside_frame, width=20,font = ("times new roman", 12, "bold"))
+        atten_roll.grid(row=0, column=3, padx=10, pady=8, sticky = W)
+
+        #   Name
+        nameLabel = Label(left_inside_frame, text="Name:", font = ("times new roman", 12, "bold"), bg="white")
+        nameLabel.grid(row=1,column=0, padx=10, pady=8, sticky  =W)
+
+        atten_name = ttk.Entry(left_inside_frame, width=20,font = ("times new roman", 12, "bold"))
+        atten_name.grid(row=1, column=1, padx=10, pady=8, sticky = W)
+
+        #   Department
+        depLabel = Label(left_inside_frame, text="Department:", font = ("times new roman", 12, "bold"), bg="white")
+        depLabel.grid(row=1,column=2, padx=10, pady=8, sticky  =W)
+
+        atten_dep = ttk.Entry(left_inside_frame, width=20,font = ("times new roman", 12, "bold"))
+        atten_dep.grid(row=1, column=3, padx=10, pady=8, sticky = W)
+
+        #   time
+        timeLabel = Label(left_inside_frame, text="Time:", font = ("times new roman", 12, "bold"), bg="white")
+        timeLabel.grid(row=2,column=0, padx=10, pady=8, sticky  =W)
+
+        atten_time = ttk.Entry(left_inside_frame, width=20,font = ("times new roman", 12, "bold"))
+        atten_time.grid(row=2, column=1, padx=10, pady=8, sticky = W)
+
+        #   date
+        dateLabel = Label(left_inside_frame, text="Date:", font = ("times new roman", 12, "bold"), bg="white")
+        dateLabel.grid(row=2,column=2, padx=10, pady=8, sticky  =W)
+
+        atten_date = ttk.Entry(left_inside_frame, width=20,font = ("times new roman", 12, "bold"))
+        atten_date.grid(row=2, column=3, padx=10, pady=8, sticky = W)
+
+        #   Attendance
+        attendanceLabel = Label(left_inside_frame, text="Attendance Status", font = ("times new roman", 12, "bold"), bg="white")
+        attendanceLabel.grid(row=3,column=0, padx=10, pady=5, sticky  =W)
+
+        self.atten_status = ttk.Combobox(left_inside_frame,font = ("times new roman", 12, "bold"), width = 15,  state="readonly")
+        self.atten_status["values"] = ("Status", "Present", "Absent")
+        self.atten_status.grid(row=3 ,column=1, padx=10, pady=5, sticky = W)
+        self.atten_status.current(0)
+
+        # right label frame
+        Right_frame = LabelFrame(main_frame, bd=2, bg="white", relief=RIDGE, text="Attendance Details", font=("times new roman", 12, "bold"))
+        Right_frame.place(x=780, y=10, width=660, height=580)
+
         f_lbl = Label(self.root,image=self.photoimg1)
         f_lbl.place(x=800,y=0,width=800,height=180) 
+
+        
 
 if __name__ == "__main__":
     root= Tk()
