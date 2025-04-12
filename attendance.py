@@ -50,7 +50,7 @@ class Attendance:
         f_lbl.place(x=5,y=0,width=720,height=130) 
 
         left_inside_frame=Frame(Left_frame, bd=2, relief=RIDGE ,bg="white")
-        left_inside_frame.place(x=10, y=135, width=720, height=300)
+        left_inside_frame.place(x=10, y=135, width=720, height=370)
 
         ######Labels and entry#######
         #Attendance  ID
@@ -106,19 +106,19 @@ class Attendance:
 
         #buttons Frame
         btn_frame = Frame(left_inside_frame, bd=2, relief=RIDGE, bg="white")
-        btn_frame.place(x=0, y=200, width=715, height=35)
+        btn_frame.place(x=0, y=300, width=715, height=35)
 
         #Save
-        save_btn=Button(btn_frame, text="Save", width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
-        save_btn.grid(row=0, column=0)
+        import_btn=Button(btn_frame, text="Import CSV", width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
+        import_btn.grid(row=0, column=0)
 
         # Update
-        update_btn=Button(btn_frame, text="Update", width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
-        update_btn.grid(row=0, column=1)
+        export_btn=Button(btn_frame, text="Export CSV", width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
+        export_btn.grid(row=0, column=1)
 
         # Delete
-        delete_btn=Button(btn_frame, text="Delete", width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
-        delete_btn.grid(row=0, column=2)
+        update_btn=Button(btn_frame, text="Update", width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
+        update_btn.grid(row=0, column=2)
 
         # Reset
         reset_btn=Button(btn_frame, text="Reset", width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
@@ -126,7 +126,45 @@ class Attendance:
 
         # right label frame
         Right_frame = LabelFrame(main_frame, bd=2, bg="white", relief=RIDGE, text="Attendance Details", font=("times new roman", 12, "bold"))
-        Right_frame.place(x=780, y=10, width=660, height=580)
+        Right_frame.place(x=780, y=10, width=680, height=580)
+
+        table_frame = Frame(Right_frame, bd=2, relief=RIDGE, bg="white")
+        table_frame.place(x=5, y=5, width=665, height=455)
+
+        ########scrollbar table###############################
+        scroll_x = ttk.Scrollbar(table_frame,orient=HORIZONTAL)
+        scroll_Y = ttk.Scrollbar(table_frame,orient=VERTICAL)
+
+        self.AttendanceReportTable=ttk.Treeview(table_frame,column=("id", "roll", "name", "department", "time", "date", "attendance"),xscrollcommand=scroll_x.set,yscrollcommand=scroll_Y.set)
+
+        scroll_x.pack(side=BOTTOM, fill=X)
+        scroll_Y.pack(side=RIGHT, fill=Y)
+
+        scroll_x.config(command=self.AttendanceReportTable.xview)
+        scroll_Y.config(command=self.AttendanceReportTable.yview)
+
+        self.AttendanceReportTable.heading("id",text="Attendance ID")
+        self.AttendanceReportTable.heading("roll",text="Roll")
+        self.AttendanceReportTable.heading("name",text="Name")
+        self.AttendanceReportTable.heading("department",text="Department")
+        self.AttendanceReportTable.heading("time",text="Time")
+        self.AttendanceReportTable.heading("date",text="Date")
+        self.AttendanceReportTable.heading("attendance",text="Attendance")
+
+        ### removed space
+        self.AttendanceReportTable["show"] = "headings"
+        self.AttendanceReportTable.column("id", width=100)
+        self.AttendanceReportTable.column("roll", width=100)
+        self.AttendanceReportTable.column("name", width=100)
+        self.AttendanceReportTable.column("department", width=100)
+        self.AttendanceReportTable.column("time", width=100)
+        self.AttendanceReportTable.column("date", width=100)
+        self.AttendanceReportTable.column("attendance", width=100)
+
+        self.AttendanceReportTable.pack(fill=BOTH, expand=1)
+
+
+
 
         f_lbl = Label(self.root,image=self.photoimg1)
         f_lbl.place(x=800,y=0,width=800,height=180) 
