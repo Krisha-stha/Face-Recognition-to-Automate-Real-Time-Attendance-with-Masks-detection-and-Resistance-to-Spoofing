@@ -122,6 +122,8 @@ class Face_Recognition:
         video_cap.release()
         cv2.destroyAllWindows()
 
+        ################ Add the spoofing part
+
 
 
 
