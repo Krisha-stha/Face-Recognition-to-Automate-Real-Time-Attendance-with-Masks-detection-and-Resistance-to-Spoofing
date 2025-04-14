@@ -12,6 +12,8 @@ import numpy as np
 import imutils
 from scipy.spatial import distance as dist
 import dlib
+from imutils import face_utils
+
 
 
 def eye_aspect_ratio(eye):
@@ -37,7 +39,7 @@ blink_counter = 0
 total_blinks = 0
 
 detector = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")  # Download this model file
+predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")  
 
 (lStart, lEnd) = (42, 48)
 (rStart, rEnd) = (36, 42)
