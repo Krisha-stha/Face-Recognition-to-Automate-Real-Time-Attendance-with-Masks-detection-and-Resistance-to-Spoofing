@@ -263,7 +263,7 @@ class Face_Recognition:
         while True:
             ret, img = video_cap.read()
             img = recognize(img, clf, faceCascade)
-            cv2.imshow("Welcome", img)
+            cv2.imshow("Face Recognition with Spoof Prevention", img)
 
             key = cv2.waitKey(1) & 0xFF
             if key == ord('q') or key == 27:
