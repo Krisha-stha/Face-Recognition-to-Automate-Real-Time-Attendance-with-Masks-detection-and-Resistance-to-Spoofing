@@ -136,7 +136,7 @@ class Attendance:
         update_btn.grid(row=0, column=2)
 
         # Reset
-        reset_btn=Button(btn_frame, text="Reset", width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
+        reset_btn=Button(btn_frame, text="Reset", command=self.reset_data, width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
         reset_btn.grid(row=0, column=3)
 
         # right label frame
@@ -232,8 +232,14 @@ class Attendance:
         self.var_atten_date.set(rows[5])
         self.var_atten_attendance.set(rows[6])
 
-
-
+    def reset_data(self):
+        self.var_atten_id.set("")
+        self.var_atten_roll.set("")
+        self.var_atten_name.set("")
+        self.var_atten_dep.set("")
+        self.var_atten_time.set("")
+        self.var_atten_date.set("")
+        self.var_atten_attendance.set("")
 
 
 
