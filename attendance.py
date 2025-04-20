@@ -4,6 +4,12 @@ from PIL import Image, ImageTk
 from tkinter import messagebox
 import mysql.connector
 import cv2
+import os
+import csv
+from tkinter import filedialog
+
+#global variable
+mydata=[]
 
 class Attendance:
     def __init__(self,root):
@@ -108,15 +114,15 @@ class Attendance:
         btn_frame = Frame(left_inside_frame, bd=2, relief=RIDGE, bg="white")
         btn_frame.place(x=0, y=300, width=715, height=35)
 
-        #Save
-        import_btn=Button(btn_frame, text="Import CSV", width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
+        #Import
+        import_btn=Button(btn_frame, text="Import CSV", command=self.importCsv,width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
         import_btn.grid(row=0, column=0)
 
-        # Update
+        # Export
         export_btn=Button(btn_frame, text="Export CSV", width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
         export_btn.grid(row=0, column=1)
 
-        # Delete
+        # Update
         update_btn=Button(btn_frame, text="Update", width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
         update_btn.grid(row=0, column=2)
 
@@ -163,12 +169,31 @@ class Attendance:
 
         self.AttendanceReportTable.pack(fill=BOTH, expand=1)
 
-
-
-
         f_lbl = Label(self.root,image=self.photoimg1)
         f_lbl.place(x=800,y=0,width=800,height=180) 
 
+
+    ########################fetch data###############################
+
+    def fetchData(self, rows):
+        self.AttendanceReportTable.delete(*self.AttendanceReportTable.get_children())
+        for i in rows:
+            self.AttendanceReportTable.insert("", END, values=i)
+
+    def importCsv(self):
+        global mydata
+        fln = filedialog.askopenfilename(initialdir=os.getcwd(),title="Open CSV", filetypes=(("CSV file", "*.csv"),("All File","*.*")),parent=self.root)
+        with open(fln) as myfile:
+            csvread= csv.reader(myfile,delimiter=",")
+            for i in csvread:
+                mydata.append(i)
+            self.fetchData(mydata)
+
+
+
+
+
+        
         
 
 if __name__ == "__main__":

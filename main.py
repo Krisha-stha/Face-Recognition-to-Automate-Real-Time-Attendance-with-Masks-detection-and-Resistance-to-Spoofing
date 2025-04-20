@@ -5,6 +5,7 @@ import os
 from student import Student
 from train import Train
 from face_recognition import Face_Recognition
+from attendance import Attendance
 
 class Face_Recognition_System:
     def __init__(self,root):
@@ -74,10 +75,10 @@ class Face_Recognition_System:
         attendance = attendance.resize((220, 220),Image.ANTIALIAS)
         self.attend=ImageTk.PhotoImage(attendance)
 
-        button = Button(bg_image,image=self.attend, cursor="hand2")
+        button = Button(bg_image,image=self.attend, cursor="hand2", command=self.attendance_data)
         button.place(x=800, y=100, width=220, height=220)
 
-        button3 = Button(bg_image,text="Attendance", cursor="hand2", font = ("times new roman", 15, "bold"),bg = "white", fg = "pink")
+        button3 = Button(bg_image,text="Attendance", cursor="hand2", command=self.attendance_data, font = ("times new roman", 15, "bold"),bg = "white", fg = "pink")
         button3.place(x=800, y=300, width=220, height=40)
 
         # Help button
@@ -153,6 +154,9 @@ class Face_Recognition_System:
         self.new_window=Toplevel(self.root)
         self.app=Face_Recognition(self.new_window)
     
+    def attendance_data(self):
+        self.new_window=Toplevel(self.root)
+        self.app=Attendance(self.new_window)
 
 if __name__ == "__main__":
     root= Tk()
