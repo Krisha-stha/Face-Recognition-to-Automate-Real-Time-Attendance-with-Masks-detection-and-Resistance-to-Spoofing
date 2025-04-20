@@ -17,6 +17,15 @@ class Attendance:
         self.root.geometry("1530x790+0+0")
         self.root.title("Face Recognition System")
 
+        # variables
+        self.var_atten_id = StringVar()
+        self.var_atten_roll = StringVar()
+        self.var_atten_name = StringVar()
+        self.var_atten_dep = StringVar()
+        self.var_atten_time = StringVar()
+        self.var_atten_date= StringVar()
+        self.var_atten_attendance = StringVar()
+
         # first image
         img = Image.open(r"my_images\student_image1.jpeg")
         img = img.resize((800, 200),Image.ANTIALIAS)
@@ -63,49 +72,49 @@ class Attendance:
         attendanceID_label = Label(left_inside_frame, text="AttendanceId", font = ("times new roman", 12, "bold"), bg="white")
         attendanceID_label.grid(row=0,column=0, padx=10, pady=5, sticky  =W)
 
-        attendanceID_entry = ttk.Entry(left_inside_frame, width=20,font = ("times new roman", 12, "bold"))
+        attendanceID_entry = ttk.Entry(left_inside_frame, width=20, textvariable=self.var_atten_id,font = ("times new roman", 12, "bold"))
         attendanceID_entry.grid(row=0, column=1, padx=10, pady=5, sticky = W)
 
         #  Roll
         rollLabel = Label(left_inside_frame, text="Roll:", font = ("times new roman", 12, "bold"), bg="white")
         rollLabel.grid(row=0,column=2, padx=10, pady=8, sticky  =W)
 
-        atten_roll = ttk.Entry(left_inside_frame, width=20,font = ("times new roman", 12, "bold"))
+        atten_roll = ttk.Entry(left_inside_frame, width=20,textvariable=self.var_atten_roll,font = ("times new roman", 12, "bold"))
         atten_roll.grid(row=0, column=3, padx=10, pady=8, sticky = W)
 
         #   Name
         nameLabel = Label(left_inside_frame, text="Name:", font = ("times new roman", 12, "bold"), bg="white")
         nameLabel.grid(row=1,column=0, padx=10, pady=8, sticky  =W)
 
-        atten_name = ttk.Entry(left_inside_frame, width=20,font = ("times new roman", 12, "bold"))
+        atten_name = ttk.Entry(left_inside_frame, width=20,textvariable=self.var_atten_name,font = ("times new roman", 12, "bold"))
         atten_name.grid(row=1, column=1, padx=10, pady=8, sticky = W)
 
         #   Department
         depLabel = Label(left_inside_frame, text="Department:", font = ("times new roman", 12, "bold"), bg="white")
         depLabel.grid(row=1,column=2, padx=10, pady=8, sticky  =W)
 
-        atten_dep = ttk.Entry(left_inside_frame, width=20,font = ("times new roman", 12, "bold"))
+        atten_dep = ttk.Entry(left_inside_frame, width=20,textvariable=self.var_atten_dep,font = ("times new roman", 12, "bold"))
         atten_dep.grid(row=1, column=3, padx=10, pady=8, sticky = W)
 
         #   time
         timeLabel = Label(left_inside_frame, text="Time:", font = ("times new roman", 12, "bold"), bg="white")
         timeLabel.grid(row=2,column=0, padx=10, pady=8, sticky  =W)
 
-        atten_time = ttk.Entry(left_inside_frame, width=20,font = ("times new roman", 12, "bold"))
+        atten_time = ttk.Entry(left_inside_frame, width=20,textvariable=self.var_atten_time,font = ("times new roman", 12, "bold"))
         atten_time.grid(row=2, column=1, padx=10, pady=8, sticky = W)
 
         #   date
         dateLabel = Label(left_inside_frame, text="Date:", font = ("times new roman", 12, "bold"), bg="white")
         dateLabel.grid(row=2,column=2, padx=10, pady=8, sticky  =W)
 
-        atten_date = ttk.Entry(left_inside_frame, width=20,font = ("times new roman", 12, "bold"))
+        atten_date = ttk.Entry(left_inside_frame, width=20,textvariable=self.var_atten_date,font = ("times new roman", 12, "bold"))
         atten_date.grid(row=2, column=3, padx=10, pady=8, sticky = W)
 
         #   Attendance
         attendanceLabel = Label(left_inside_frame, text="Attendance Status", font = ("times new roman", 12, "bold"), bg="white")
         attendanceLabel.grid(row=3,column=0, padx=10, pady=5, sticky  =W)
 
-        self.atten_status = ttk.Combobox(left_inside_frame,font = ("times new roman", 12, "bold"), width = 15,  state="readonly")
+        self.atten_status = ttk.Combobox(left_inside_frame,textvariable=self.var_atten_attendance,font = ("times new roman", 12, "bold"), width = 15,  state="readonly")
         self.atten_status["values"] = ("Status", "Present", "Absent")
         self.atten_status.grid(row=3 ,column=1, padx=10, pady=5, sticky = W)
         self.atten_status.current(0)
@@ -169,6 +178,8 @@ class Attendance:
 
         self.AttendanceReportTable.pack(fill=BOTH, expand=1)
 
+        self.AttendanceReportTable.bind("<ButtonRelease>", self.get_cursor)
+
         f_lbl = Label(self.root,image=self.photoimg1)
         f_lbl.place(x=800,y=0,width=800,height=180) 
 
@@ -206,6 +217,20 @@ class Attendance:
 
         except Exception as es:
             messagebox.showerror("Error", f"Due to: {str(es)}", parent = self.root)
+
+    
+    def get_cursor(self, event=""):
+        cursor_row = self.AttendanceReportTable.focus()
+        content = self.AttendanceReportTable.item(cursor_row)
+
+        rows =content['values']
+        self.var_atten_id.set(rows[0])
+        self.var_atten_roll.set(rows[1])
+        self.var_atten_name.set(rows[2])
+        self.var_atten_dep.set(rows[3])
+        self.var_atten_time.set(rows[4])
+        self.var_atten_date.set(rows[5])
+        self.var_atten_attendance.set(rows[6])
 
 
 
