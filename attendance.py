@@ -119,7 +119,7 @@ class Attendance:
         import_btn.grid(row=0, column=0)
 
         # Export
-        export_btn=Button(btn_frame, text="Export CSV", width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
+        export_btn=Button(btn_frame, text="Export CSV", command=self.exportCsv,width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
         export_btn.grid(row=0, column=1)
 
         # Update
@@ -180,14 +180,33 @@ class Attendance:
         for i in rows:
             self.AttendanceReportTable.insert("", END, values=i)
 
+    ############# import csv ##############
     def importCsv(self):
         global mydata
+        mydata.clear()
         fln = filedialog.askopenfilename(initialdir=os.getcwd(),title="Open CSV", filetypes=(("CSV file", "*.csv"),("All File","*.*")),parent=self.root)
         with open(fln) as myfile:
             csvread= csv.reader(myfile,delimiter=",")
             for i in csvread:
                 mydata.append(i)
             self.fetchData(mydata)
+
+    ############## export csv ############
+    def exportCsv(self):
+        try:
+            if len(mydata)<1:
+                messagebox.showerror("No data", "No data found to export", parent = self.root)
+                return False
+            fln = filedialog.asksaveasfilename(initialdir=os.getcwd(),title="Open CSV", filetypes=(("CSV file", "*.csv"),("All File","*.*")),parent=self.root)
+            with open(fln, mode="w", newline="") as myfile:
+                exp_write = csv.writer(myfile, delimiter=",")
+                for i in mydata:
+                    exp_write.writerow(i)
+                messagebox.showinfo("Data export", "Your data is exported to" + os.path.basename(fln)+"successfully")
+
+        except Exception as es:
+            messagebox.showerror("Error", f"Due to: {str(es)}", parent = self.root)
+
 
 
 
