@@ -49,6 +49,9 @@ class Face_Recognition:
         self.root.geometry("1530x790+0+0")
         self.root.title("Face Recognition System")
         
+        self.counter = 0
+        self.total = 0
+
         title_lbl = Label(self.root, text = "Face recognition", font = ("times new roman", 35, "bold"),bg = "white", fg = "pink")
         title_lbl.place(x = 0, y = 0, width = 1530, height = 60)
 
@@ -197,6 +200,7 @@ class Face_Recognition:
                     coords = [x, y, w, h]
 
                     return coords, (i, r, n, d)
+                    
 
                 else:
                     cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 3)
@@ -262,6 +266,10 @@ class Face_Recognition:
 
         while True:
             ret, img = video_cap.read()
+            ##ADDEDDDD
+            # if not ret:
+            #     break
+            ###INCASE ERROR ADDED 2 LINESS
             img = recognize(img, clf, faceCascade)
             cv2.imshow("Face Recognition with Spoof Prevention", img)
 
