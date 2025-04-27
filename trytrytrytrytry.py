@@ -8,41 +8,28 @@ from datetime import datetime
 import cv2
 import os
 import numpy as np
-import imutils
-import mediapipe as mp
+import time
 
 class Face_Recognition:
-    def __init__(self,root):
-        self.root=root
+    def __init__(self, root):
+        self.root = root
         self.root.geometry("1530x790+0+0")
         self.root.title("Face Recognition System")
         
-        # Blink detection variables
-        self.blink_threshold = 0.21
-        self.closed_frames = 0
-        self.blink_count = 0
-        self.last_attendance_marked = None  # To prevent duplicate entries
+        # Add protocol for window close
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
         
-        # Initialize MediaPipe Face Mesh
-        self.mp_face_mesh = mp.solutions.face_mesh
-        self.face_mesh = self.mp_face_mesh.FaceMesh(
-            static_image_mode=False, 
-            max_num_faces=1, 
-            refine_landmarks=True,
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5
-        )
-        
-        # Eye landmarks indices
-        self.left_eye = [33, 160, 158, 133, 153, 144]
-        self.right_eye = [362, 385, 387, 263, 373, 380]
+        # Video capture object
+        self.video_cap = None
+        self.is_running = False
+        self.prev_gray = None
 
         title_lbl = Label(self.root, text="Face recognition", font=("times new roman", 35, "bold"), bg="white", fg="pink")
         title_lbl.place(x=0, y=0, width=1530, height=60)
 
         # First image
         img_top = Image.open(r"my_images\details.jpeg")
-        img_top = img_top.resize((650, 700), Image.ANTIALIAS)
+        img_top = img_top.resize((650, 700), Image.LANCZOS)
         self.photoimg_top = ImageTk.PhotoImage(img_top)
 
         f_lbl = Label(self.root, image=self.photoimg_top)
@@ -50,177 +37,221 @@ class Face_Recognition:
 
         # Second image
         img_bottom = Image.open(r"my_images\details.jpeg")
-        img_bottom = img_bottom.resize((950, 700), Image.ANTIALIAS)
+        img_bottom = img_bottom.resize((950, 700), Image.LANCZOS)
         self.photoimg_bottom = ImageTk.PhotoImage(img_bottom)
 
         f_lbl = Label(self.root, image=self.photoimg_bottom)
         f_lbl.place(x=650, y=60, width=950, height=700) 
 
-        # Button
-        button1 = Button(f_lbl, text="Face Recognition", command=self.face_recog, cursor="hand2", 
-                        font=("times new roman", 18, "bold"), bg="white", fg="pink")
+        # Buttons
+        button1 = Button(f_lbl, text="Face Recognition", command=self.face_recog, 
+                        cursor="hand2", font=("times new roman", 18, "bold"), 
+                        bg="white", fg="pink")
         button1.place(x=350, y=600, width=200, height=40)
+        
+        stop_btn = Button(f_lbl, text="Stop Recognition", command=self.stop_recognition,
+                         cursor="hand2", font=("times new roman", 18, "bold"),
+                         bg="white", fg="red")
+        stop_btn.place(x=350, y=650, width=200, height=40)
 
-    def get_eye_aspect_ratio(self, landmarks, eye_indices):
-        top = (landmarks[eye_indices[1]].y + landmarks[eye_indices[2]].y) / 2
-        bottom = (landmarks[eye_indices[4]].y + landmarks[eye_indices[5]].y) / 2
-        vertical = abs(top - bottom)
-        horizontal = abs(landmarks[eye_indices[0]].x - landmarks[eye_indices[3]].x)
-        return vertical / horizontal if horizontal != 0 else 0
+    def on_close(self):
+        """Handle window close event"""
+        self.stop_recognition()
+        self.root.destroy()
 
+    def stop_recognition(self):
+        """Stop the face recognition process"""
+        self.is_running = False
+        if self.video_cap is not None:
+            self.video_cap.release()
+            self.video_cap = None
+        cv2.destroyAllWindows()
+
+    ##################### ATTENDANCE ##################################
     def mark_attendance(self, i, r, n, d):
-        # Check if attendance was already marked for this person in this session
-        current_id = f"{i}_{r}_{n}_{d}"
-        if self.last_attendance_marked == current_id:
-            return False
-            
         with open("todaysattendance.csv", "r+", newline="\n") as f:
             myDataList = f.readlines()
             name_list = []
             for line in myDataList:
                 entry = line.split((","))
-                if len(entry) > 0:  # Check if line has content
-                    name_list.append(entry[0])
-            
-            if((i not in name_list) and (r not in name_list) and (n not in name_list) and (d not in name_list)):
+                name_list.append(entry[0])
+            if ((i not in name_list) and (r not in name_list) and 
+                (n not in name_list) and (d not in name_list)):
                 now = datetime.now()
                 d1 = now.strftime("%d/%m/%Y")
                 dtString = now.strftime("%H:%M:%S")
                 f.writelines(f"\n{i},{r},{n},{d},{dtString},{d1},Present")
-                self.last_attendance_marked = current_id
-                return True
-        return False
 
+    ############################## SPOOF PREVENTION METHODS ################################
+    def check_liveness(self, face_roi):
+        try:
+            # Check if face_roi is valid
+            if face_roi is None or face_roi.size == 0:
+                return False
+                
+            # Convert to grayscale and resize to consistent size
+            gray = cv2.cvtColor(face_roi, cv2.COLOR_BGR2GRAY)
+            gray = cv2.resize(gray, (100, 100))  # Fixed size for consistency
+            
+            # 1. Texture analysis (simplified)
+            edges = cv2.Canny(gray, 50, 150)
+            texture_score = np.mean(edges)
+            
+            # 2. Color analysis (more lenient)
+            hsv = cv2.cvtColor(cv2.resize(face_roi, (100, 100)), cv2.COLOR_BGR2HSV)
+            color_metric = np.std(hsv[:,:,1]) / (np.std(hsv[:,:,0]) + 1e-6)
+            
+            # 3. Motion analysis (only if we have previous frame)
+            motion_magnitude = 1.0  # Default value that assumes motion
+            if hasattr(self, 'prev_gray') and self.prev_gray is not None:
+                if self.prev_gray.shape == gray.shape:
+                    flow = cv2.calcOpticalFlowFarneback(self.prev_gray, gray, None, 
+                                                      pyr_scale=0.5, levels=3, 
+                                                      winsize=15, iterations=3, 
+                                                      poly_n=5, poly_sigma=1.2, flags=0)
+                    motion_magnitude = np.sqrt(flow[..., 0]**2 + flow[..., 1]**2).mean()
+            
+            self.prev_gray = gray
+            
+            # Adjusted thresholds (less strict)
+            texture_pass = texture_score > 10  # Lowered from 20
+            color_pass = color_metric > 0.2    # Lowered from 0.3
+            motion_pass = motion_magnitude > 0.05  # Lowered from 0.1
+            
+            # Debug output
+            print(f"Texture: {texture_score:.1f} ({'PASS' if texture_pass else 'FAIL'}) | "
+                  f"Color: {color_metric:.2f} ({'PASS' if color_pass else 'FAIL'}) | "
+                  f"Motion: {motion_magnitude:.2f} ({'PASS' if motion_pass else 'FAIL'})")
+            
+            # Require 2 out of 3 tests to pass
+            is_live = sum([texture_pass, color_pass, motion_pass]) >= 2
+            
+            return is_live
+        except Exception as e:
+            print(f"Liveness check error: {e}")
+            return True  # Fail-safe: assume live if error occurs
+
+    ############################## FACE RECOGNITION ############################################### 
     def face_recog(self):
         def draw_boundary(img, classifier, scaleFactor, minNeighbors, color, text, clf):
             gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             features = classifier.detectMultiScale(gray_image, scaleFactor, minNeighbors)
 
-            coords = []
-            user_data = None
-
+            coord = []
+            
             for (x, y, w, h) in features:
-                cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
-                id, predict = clf.predict(gray_image[y:y + h, x:x + w])
-                confidence = int((100 * (1 - predict / 300)))
-
                 try:
-                    conn = mysql.connector.connect(host="localhost", user="root", password="krisha123", database="face_recognition")
+                    # Ensure coordinates are within image bounds
+                    height, width = img.shape[:2]
+                    x, y, w, h = max(0, x), max(0, y), min(w, width-x), min(h, height-y)
+                    
+                    # Skip if width or height is zero
+                    if w <= 0 or h <= 0:
+                        continue
+                        
+                    face_roi = img[y:y+h, x:x+w]
+                    
+                    # Skip if face_roi is empty
+                    if face_roi.size == 0:
+                        continue
+                    
+                    # Spoof detection check
+                    is_live = self.check_liveness(face_roi)
+                    
+                    if not is_live:
+                        cv2.rectangle(img, (x, y), (x+w, y+h), (0, 0, 255), 3)
+                        cv2.putText(img, "SPOOF ATTEMPT", (x, y-10), 
+                                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+                        continue
+                    
+                    cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 3)
+                    id, predict = clf.predict(gray_image[y:y+h, x:x+w])
+                    confidence = int((100*(1-predict/300)))
+
+                    conn = mysql.connector.connect(host="localhost", user="root", 
+                                                 password="krisha123", database="face_recognition")
                     my_cursor = conn.cursor()
 
-                    my_cursor.execute("select Name from student where Student_id=" + str(id))
-                    n_result = my_cursor.fetchone()
-                    n = "+".join(n_result) if n_result else "Unknown"
+                    # Fetch student data
+                    my_cursor.execute("SELECT Name, Roll, Dep, Student_id FROM student WHERE Student_id=%s", (str(id),))
+                    student_data = my_cursor.fetchone()
+                    
+                    if student_data is None:
+                        cv2.putText(img, "Unknown ID", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+                        continue
+                        
+                    n, r, d, i = student_data
+                    n = str(n)
+                    r = str(r)
+                    d = str(d)
+                    i = str(i)
 
-                    my_cursor.execute("select Roll from student where Student_id=" + str(id))
-                    r_result = my_cursor.fetchone()
-                    r = "+".join(r_result) if r_result else "Unknown"
-
-                    my_cursor.execute("select Dep from student where Student_id=" + str(id))
-                    d_result = my_cursor.fetchone()
-                    d = "+".join(d_result) if d_result else "Unknown"
-
-                    my_cursor.execute("select Student_id from student where Student_id=" + str(id))
-                    i_result = my_cursor.fetchone()
-                    i = "+".join(i_result) if i_result else "Unknown"
-
-                    if confidence > 77:
-                        cv2.putText(img, f"ID:{i}", (x, y - 75), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
-                        cv2.putText(img, f"Roll:{r}", (x, y - 55), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
-                        cv2.putText(img, f"Name:{n}", (x, y - 30), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
-                        cv2.putText(img, f"Department:{d}", (x, y - 5), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
-
-                        coords = [x, y, w, h]
-                        user_data = (i, r, n, d)
+                    if confidence > 60: #77
+                        cv2.putText(img, f"ID:{i}", (x, y-75), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 2)
+                        cv2.putText(img, f"Roll:{r}", (x, y-55), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 2)
+                        cv2.putText(img, f"Name:{n}", (x, y-30), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 2)
+                        cv2.putText(img, f"Dept:{d}", (x, y-5), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 2)
+                        self.mark_attendance(i, r, n, d)
                     else:
-                        cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 3)
-                        cv2.putText(img, "Unknown Face", (x, y - 5), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
-
-                    conn.close()
+                        cv2.rectangle(img, (x, y), (x+w, y+h), (0, 0, 255), 3)
+                        cv2.putText(img, "Unknown Face", (x, y-5), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 2)
+                        
                 except Exception as e:
-                    print(f"Database error: {e}")
+                    print(f"Face processing error: {e}")
+                    continue
 
-            return coords, user_data
+            return coord
 
         def recognize(img, clf, faceCascade):
-            # Face recognition
-            coords, user_data = draw_boundary(img, faceCascade, 1.1, 10, (255, 255, 255), "Face", clf)
-            
-            # Blink detection with MediaPipe
-            img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            results = self.face_mesh.process(img_rgb)
-            
-            blink_detected = False
-            
-            if results.multi_face_landmarks:
-                for face_landmarks in results.multi_face_landmarks:
-                    lm = face_landmarks.landmark
-                    
-                    left_ear = self.get_eye_aspect_ratio(lm, self.left_eye)
-                    right_ear = self.get_eye_aspect_ratio(lm, self.right_eye)
-                    ear = (left_ear + right_ear) / 2
-                    
-                    # Blink detection logic
-                    if ear < self.blink_threshold:
-                        self.closed_frames += 1
-                    else:
-                        if self.closed_frames >= 3:  # Minimum frames for a blink
-                            self.blink_count += 1
-                            blink_detected = True
-                            
-                        self.closed_frames = 0
-                    
-                    # Display blink information
-                    cv2.putText(img, f"EAR: {ear:.2f}", (10, 30), 
-                               cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-                    cv2.putText(img, f"Blinks: {self.blink_count}", (10, 60), 
-                               cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
-                    
-                    # Draw eye landmarks
-                    mp.solutions.drawing_utils.draw_landmarks(
-                        image=img,
-                        landmark_list=face_landmarks,
-                        connections=self.mp_face_mesh.FACEMESH_CONTOURS,
-                        landmark_drawing_spec=None,
-                        connection_drawing_spec=mp.solutions.drawing_styles
-                        .get_default_face_mesh_contours_style())
-            
-            # Mark attendance if face is recognized and blink detected
-            if user_data and blink_detected:
-                i, r, n, d = user_data
-                if self.mark_attendance(i, r, n, d):
-                    cv2.putText(img, "ATTENDANCE MARKED", (10, 90), 
-                               cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
-            
+            coord = draw_boundary(img, faceCascade, 1.1, 10, (255, 255, 255), "Face", clf)
             return img
 
-        # Initialize face detection
-        faceCascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
+        # Stop any existing recognition first
+        self.stop_recognition()
+
+        # Load classifiers
+        faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+        if faceCascade.empty():
+            messagebox.showerror("Error", "Could not load face detector!")
+            return
+
         clf = cv2.face.LBPHFaceRecognizer_create()
-        clf.read("classifier.xml")
+        try:
+            clf.read("classifier.xml")
+        except:
+            messagebox.showerror("Error", "Could not load classifier!")
+            return
 
-        # Reset counters
-        self.closed_frames = 0
-        self.blink_count = 0
-        self.last_attendance_marked = None
+        # Initialize video capture
+        self.video_cap = cv2.VideoCapture(0)
+        if not self.video_cap.isOpened():
+            messagebox.showerror("Error", "Could not open camera!")
+            return
 
-        video_cap = cv2.VideoCapture(0)
+        # Initialize variables
+        self.prev_gray = None
+        self.is_running = True
 
-        while True:
-            ret, img = video_cap.read()
-            if not ret:
-                break
-                
-            img = recognize(img, clf, faceCascade)
-            cv2.imshow("Face Recognition with Spoof Prevention", img)
+        try:
+            while self.is_running:
+                ret, img = self.video_cap.read()
+                if not ret:
+                    print("Failed to grab frame")
+                    break
+                    
+                img = recognize(img, clf, faceCascade)
+                cv2.imshow("Face Recognition - Press Q to quit", img)
 
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord('q') or key == 27:
-                break
+                # Check for quit command
+                key = cv2.waitKey(1) & 0xFF
+                if key == ord('q') or key == 27 or not self.is_running:
+                    break
 
-        video_cap.release()
-        cv2.destroyAllWindows()
-        self.face_mesh.close()
+                # Check if OpenCV window was closed
+                if cv2.getWindowProperty("Face Recognition - Press Q to quit", cv2.WND_PROP_VISIBLE) < 1:
+                    break
+        finally:
+            self.stop_recognition()
 
 if __name__ == "__main__":
     root = Tk()
