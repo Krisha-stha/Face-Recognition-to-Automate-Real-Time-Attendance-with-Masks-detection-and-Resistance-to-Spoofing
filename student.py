@@ -4,6 +4,7 @@ from PIL import Image, ImageTk
 from tkinter import messagebox
 import mysql.connector
 import cv2
+from mtcnn import MTCNN 
 
 class Student:
     def __init__(self,root):
@@ -234,12 +235,16 @@ class Student:
         btn_frame1.place(x=0, y=235, width=715, height=35)
 
         #Take a photo sample
-        take_photo_btn=Button(btn_frame1, command=self.generate_dataset,text="Take Photo Sample", width = 40, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
+        take_photo_btn=Button(btn_frame1, command=self.generate_dataset,text="Take Photo Sample", width = 26, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
         take_photo_btn.grid(row=0, column=0)
 
         #Take a photo sample
-        update_photo_btn=Button(btn_frame1, text="Update Photo Sample", width = 40, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
-        update_photo_btn.grid(row=0, column=1)
+        take_photo_btn=Button(btn_frame1, command=self.generate_maskset,text="Take Mask Sample", width = 26, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
+        take_photo_btn.grid(row=0, column=1)
+
+        #Take a photo sample
+        update_photo_btn=Button(btn_frame1, text="Update Photo Sample", width = 26, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
+        update_photo_btn.grid(row=0, column=2)
 
         # right label frame
         Right_frame = LabelFrame(main_frame, bd=2, bg="white", relief=RIDGE, text="Student Details", font=("times new roman", 12, "bold"))
@@ -621,8 +626,105 @@ class Student:
         except Exception as es:
             messagebox.showerror("Error", f"Due To: {str(es)}", parent=self.root)
 
+
+
+    def generate_maskset(self):
+        if self.var_dep.get() == "Select Department" or self.var_std_name.get() == "" or self.var_std_id.get() == "":
+            messagebox.showerror("Error", "All fields are required", parent=self.root)
+            return
+
+        try:
+            # Database connection
+            conn = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="krisha123",
+                database="face_recognition"
+            )
+            my_cursor = conn.cursor()
+            
+            # Get the actual student ID from the form
+            student_id = self.var_std_id.get()
+
+            # Update student record
+            my_cursor.execute("""
+                UPDATE student 
+                SET Dep=%s, courses=%s, Year=%s, Semester=%s, Name=%s, Division=%s, Roll=%s, 
+                    Gender=%s, Dob=%s, Email=%s, Phone=%s, Address=%s, Teacher=%s, PhotoSample=%s 
+                WHERE Student_id=%s
+            """, (
+                self.var_dep.get(),
+                self.var_course.get(),
+                self.var_year.get(),
+                self.var_semester.get(),
+                self.var_std_name.get(),
+                self.var_div.get(),
+                self.var_roll.get(),
+                self.var_gender.get(),
+                self.var_dob.get(),
+                self.var_email.get(),
+                self.var_phone.get(),
+                self.var_address.get(),
+                self.var_teacher.get(),
+                self.var_radio1.get(),
+                student_id  # Use the actual student ID here
+            ))
+
+            conn.commit()
+            self.fetch_data()
+            self.reset_data()
+            conn.close()
+
+            # Face detection setup
+            import os
+            os.makedirs("mask", exist_ok=True)
+            detector = MTCNN(min_face_size=50, steps_threshold=[0.5, 0.7, 0.9])
+
+            def face_cropped(img):
+                result = detector.detect_faces(img)
+                if result:
+                    x, y, w, h = result[0]['box']
+                    # Adjust for negative coordinates
+                    x, y = max(0, x), max(0, y)
+                    return img[y:y+h, x:x+w], (x, y, w, h)
+                return None, (0, 0, 0, 0)
+
+            # Camera capture
+            cap = cv2.VideoCapture(0)
+            img_id = 0
+
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    messagebox.showerror("Error", "Camera error", parent=self.root)
+                    break
+
+                frame = cv2.flip(frame, 1)  # Mirror effect
+                cropped_face, (x, y, w, h) = face_cropped(frame)
                 
-                               
+                if cropped_face is not None:
+                    img_id += 1
+                    face = cv2.resize(cropped_face, (224, 224))
+                    file_name_path = f"mask/user.{student_id}.{img_id}.jpg"
+                    cv2.imwrite(file_name_path, face)
+
+                    # Display feedback
+                    cv2.putText(frame, f"Saved: {img_id}/50", (10, 30), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+                    cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                
+                cv2.imshow("Mask Dataset Collection", frame)
+                
+                # Exit on ESC key or after 50 images
+                if cv2.waitKey(1) == 27 or img_id >= 50:
+                    break
+
+            cap.release()
+            cv2.destroyAllWindows()
+            messagebox.showinfo("Success", f"50 masked face samples saved for student ID: {student_id}", parent=self.root)
+
+        except Exception as es:
+            messagebox.showerror("Error", f"Database/Camera Error: {str(es)}", parent=self.root)
 
 if __name__ == "__main__":
     root= Tk()
