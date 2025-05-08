@@ -11,13 +11,13 @@ import numpy as np
 from scipy.spatial import distance as dist
 from imutils import face_utils
 import dlib
-import keras
+from keras.applications.mobilenet_v2 import preprocess_input
+from keras.utils import img_to_array
 from keras.models import load_model
-from keras.utils import load_img, img_to_array
 
 class Face_Recognition:
-    def __init__(self,root):
-        self.root=root
+    def __init__(self, root):
+        self.root = root
         self.root.geometry("1530x790+0+0")
         self.root.title("Face Recognition System")
  
@@ -27,7 +27,7 @@ class Face_Recognition:
         # First image
         img_top = Image.open(r"my_images\details.jpeg")
         img_top = img_top.resize((650, 700), Image.ANTIALIAS)
-        self.photoimg_top=ImageTk.PhotoImage(img_top)
+        self.photoimg_top = ImageTk.PhotoImage(img_top)
  
         f_lbl = Label(self.root, image=self.photoimg_top)
         f_lbl.place(x=0, y=60, width=650, height=700) 
@@ -35,7 +35,7 @@ class Face_Recognition:
         # Second image
         img_bottom = Image.open(r"my_images\details.jpeg")
         img_bottom = img_bottom.resize((950, 700), Image.ANTIALIAS)
-        self.photoimg_bottom=ImageTk.PhotoImage(img_bottom)
+        self.photoimg_bottom = ImageTk.PhotoImage(img_bottom)
  
         f_lbl = Label(self.root, image=self.photoimg_bottom)
         f_lbl.place(x=650, y=60, width=950, height=700) 
@@ -44,6 +44,12 @@ class Face_Recognition:
         button1 = Button(f_lbl, text="Face Recognition", command=self.face_recog, cursor="hand2", 
                          font=("times new roman", 18, "bold"), bg="white", fg="pink")
         button1.place(x=350, y=600, width=200, height=40)
+
+        # Load mask detector models
+        prototxtPath = r"face_detector\deploy.prototxt"
+        weightsPath = r"face_detector\res10_300x300_ssd_iter_140000.caffemodel"
+        self.faceNet = cv2.dnn.readNet(prototxtPath, weightsPath)
+        self.maskNet = load_model("mask_detector.model")
 
     def eye_aspect_ratio(self, eye):
         A = dist.euclidean(eye[1], eye[5])
@@ -65,22 +71,53 @@ class Face_Recognition:
                 dtString = now.strftime("%H:%M:%S")
                 f.writelines(f"\n{i},{r},{n},{d},{dtString},{d1},Present")
 
+    def detect_mask(self, frame):
+        (h, w) = frame.shape[:2]
+        blob = cv2.dnn.blobFromImage(frame, 1.0, (224, 224), (104.0, 177.0, 123.0))
+        self.faceNet.setInput(blob)
+        detections = self.faceNet.forward()
+        
+        faces = []
+        locs = []
+        preds = []
+
+        for i in range(0, detections.shape[2]):
+            confidence = detections[0, 0, i, 2]
+            if confidence > 0.5:
+                box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
+                (startX, startY, endX, endY) = box.astype("int")
+                (startX, startY) = (max(0, startX), max(0, startY))
+                (endX, endY) = (min(w - 1, endX), min(h - 1, endY))
+
+                face = frame[startY:endY, startX:endX]
+                face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
+                face = cv2.resize(face, (224, 224))
+                face = img_to_array(face)
+                face = preprocess_input(face)
+
+                faces.append(face)
+                locs.append((startX, startY, endX, endY))
+
+        if len(faces) > 0:
+            faces = np.array(faces, dtype="float32")
+            preds = self.maskNet.predict(faces, batch_size=32)
+
+        return (locs, preds)
+
     def face_recog(self):
         # Initialize blink detection variables
         EYE_AR_THRESH = 0.2
         EYE_AR_CONSEC_FRAMES = 1
         COUNTER = 0
         TOTAL = 0
+        mask_detected = False
         
         # Initialize detectors
         detector = dlib.get_frontal_face_detector()
         predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
         face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
         
-        # Load mask detection model
-        mask_model = load_model('mymodel.h5')
-        
-        # Load face recognizer
+        # Load recognizer
         clf = cv2.face.LBPHFaceRecognizer_create()
         clf.read("classifier.xml")
         
@@ -98,29 +135,39 @@ class Face_Recognition:
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             faces = face_cascade.detectMultiScale(gray, 1.3, 5)
             
+            # Check for masks first
+            (mask_locs, mask_preds) = self.detect_mask(img)
+            
             # Reset blink counter if no faces detected
             if len(faces) == 0:
                 TOTAL = 0
                 COUNTER = 0
             
+            # Check if any face has a mask
+            mask_detected = False
+            for (box, pred) in zip(mask_locs, mask_preds):
+                (startX, startY, endX, endY) = box
+                (mask, withoutMask) = pred
+                
+                if mask < withoutMask:  # No mask detected
+                    mask_detected = True
+                    cv2.rectangle(img, (startX, startY), (endX, endY), (0, 0, 255), 2)
+                    cv2.putText(img, "Please wear mask", (startX, startY - 10),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+                    break
+            
+            # If mask is detected, skip face recognition
+            if mask_detected:
+                cv2.imshow("Face Recognition with Anti-Spoofing", img)
+                key = cv2.waitKey(1) & 0xFF
+                if key == ord('q') or key == 27:
+                    break
+                continue
+            
+            # If no mask detected, proceed with face recognition
             for (x, y, w, h) in faces:
-                # Check for mask first
-                face_img = img[y:y+h, x:x+w]
-                cv2.imwrite('temp.jpg', face_img)
-                test_image = load_img('temp.jpg', target_size=(150, 150, 3))
-                test_image = img_to_array(test_image)
-                test_image = np.expand_dims(test_image, axis=0)
-                mask_pred = mask_model.predict(test_image)[0][0]
-                
-                if mask_pred == 0:  # Mask detected (0 means mask in your model)
-                    # Draw rectangle (red for mask detected)
-                    cv2.rectangle(img, (x, y), (x+w, y+h), (0, 0, 255), 2)
-                    cv2.putText(img, "PLEASE REMOVE MASK", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-                    continue  # Skip recognition for masked faces
-                
-                # If no mask, proceed with recognition and anti-spoofing
-                # Draw rectangle (blue for processing)
-                color = (255, 0, 0)  # Blue
+                # Draw rectangle (green for recognized, red for unknown)
+                color = (0, 255, 0)  # Default to green
                 cv2.rectangle(img, (x, y), (x+w, y+h), color, 2)
                 
                 # Blink detection using dlib
@@ -174,8 +221,6 @@ class Face_Recognition:
                         i = "+".join(i) if i else "Unknown"
                         
                         # Display info
-                        color = (0, 255, 0)  # Green for recognized
-                        cv2.rectangle(img, (x, y), (x+w, y+h), color, 2)
                         cv2.putText(img, f"ID: {i}", (x, y-75), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
                         cv2.putText(img, f"Roll: {r}", (x, y-55), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
                         cv2.putText(img, f"Name: {n}", (x, y-30), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
@@ -192,7 +237,7 @@ class Face_Recognition:
                 # Display blink info
                 cv2.putText(img, f"Blinks: {TOTAL}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
             
-            cv2.imshow("Face Recognition with Anti-Spoofing & Mask Detection", img)
+            cv2.imshow("Face Recognition with Anti-Spoofing", img)
             
             key = cv2.waitKey(1) & 0xFF
             if key == ord('q') or key == 27:
