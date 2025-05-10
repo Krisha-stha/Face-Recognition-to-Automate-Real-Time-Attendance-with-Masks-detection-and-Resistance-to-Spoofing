@@ -12,7 +12,7 @@ from scipy.spatial import distance as dist
 from imutils import face_utils
 import dlib
 
-class Face_Recognition:
+class Face_Recognition_spoof:
     def __init__(self,root):
         self.root=root
         self.root.geometry("1530x790+0+0")
@@ -185,5 +185,5 @@ class Face_Recognition:
 
 if __name__ == "__main__":
     root = Tk()
-    obj = Face_Recognition(root)
+    obj = Face_Recognition_spoof(root)
     root.mainloop()

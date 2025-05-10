@@ -24,11 +24,11 @@ class Face_Recognition:
         self.root.geometry("1530x790+0+0")
         self.root.title("Face Recognition System")
  
-        title_lbl = Label(self.root, text = "Face recognition", font = ("times new roman", 35, "bold"),bg = "white", fg = "#191970")
+        title_lbl = Label(self.root, text = "Face recognition", font = ("times new roman", 35, "bold"),bg = "white", fg = "pink")
         title_lbl.place(x = 0, y = 0, width = 1530, height = 60)
 
         #second image
-        img_bottom = Image.open(r"my_images\image2.jpeg")
+        img_bottom = Image.open(r"my_images\details.jpeg")
         img_bottom = img_bottom.resize((1800, 700),Image.ANTIALIAS)
         self.photoimg_bottom=ImageTk.PhotoImage(img_bottom)
  
@@ -36,48 +36,27 @@ class Face_Recognition:
         f_lbl.place(x=0,y=60,width=1800,height=700) 
  
         #button
-        facedetect1 = Image.open(r"my_images\facewspoof.jpeg")
-        facedetect1 = facedetect1.resize((350, 220),Image.ANTIALIAS)
-        self.detectface1=ImageTk.PhotoImage(facedetect1)
+        facedetect = Image.open(r"my_images\facedetector.jpeg")
+        facedetect = facedetect.resize((220, 220),Image.ANTIALIAS)
+        self.detectface=ImageTk.PhotoImage(facedetect)
 
-        button = Button(f_lbl,image=self.detectface1, cursor="hand2",command=self.face_recog)
-        button.place(x=250, y=100, width=350, height=220)
+        button = Button(self.root,image=self.detectface, cursor="hand2",command=self.face_data)
+        button.place(x=500, y=100, width=220, height=220)
 
-        button1 = Button(f_lbl,text="Face Recognition with spoof", command=self.face_recog, cursor="hand2", font = ("times new roman", 18, "bold"),bg = "white", fg = "#191970")
-        button1.place(x=250, y=300, width=350, height=40)
-
-        #button
-        facedetect2 = Image.open(r"my_images\facewmask.jpeg")
-        facedetect2 = facedetect2.resize((350, 220),Image.ANTIALIAS)
-        self.detectface2=ImageTk.PhotoImage(facedetect2)
-
-        button22 = Button(f_lbl,image=self.detectface2, cursor="hand2",command=self.face_recogs)
-        button22.place(x=850, y=100, width=350, height=220)
-
-        button2 = Button(f_lbl,text="Face Recognition with mask", command=self.face_recogs, cursor="hand2", font = ("times new roman", 18, "bold"),bg = "white", fg = "#191970")
-        button2.place(x=850, y=300, width=350, height=40)
+        button1 = Button(f_lbl,text="Face Recognition with spoof", command=self.face_recog, cursor="hand2", font = ("times new roman", 18, "bold"),bg = "white", fg = "pink")
+        button1.place(x=200, y=300, width=350, height=40)
 
         #button
-        facedetect3 = Image.open(r"my_images\facewomask.jpeg")
-        facedetect3 = facedetect3.resize((350, 220),Image.ANTIALIAS)
-        self.detectface3=ImageTk.PhotoImage(facedetect3)
-
-        button33 = Button(f_lbl,image=self.detectface3, cursor="hand2",command=self.face_recog_without_mask)
-        button33.place(x=250, y=400, width=350, height=220)
-
-        button3 = Button(f_lbl,text="Face Recognition without mask", command=self.face_recog_without_mask, cursor="hand2", font = ("times new roman", 18, "bold"),bg = "white", fg = "#191970")
-        button3.place(x=250, y=600, width=350, height=40)
+        button2 = Button(f_lbl,text="Face Recognition with mask", command=self.face_recogs, cursor="hand2", font = ("times new roman", 18, "bold"),bg = "white", fg = "pink")
+        button2.place(x=800, y=300, width=350, height=40)
 
         #button
-        facedetect4 = Image.open(r"my_images\mask.jpeg")
-        facedetect4 = facedetect4.resize((350, 220),Image.ANTIALIAS)
-        self.detectface4=ImageTk.PhotoImage(facedetect4)
+        button3 = Button(f_lbl,text="Face Recognition without mask", command=self.face_recog_without_mask, cursor="hand2", font = ("times new roman", 18, "bold"),bg = "white", fg = "pink")
+        button3.place(x=200, y=600, width=350, height=40)
 
-        button44 = Button(f_lbl,image=self.detectface4, cursor="hand2",command=self.face_mask_detection)
-        button44.place(x=850, y=400, width=350, height=220)
-
-        button4 = Button(f_lbl,text="Mask Detection", command=self.face_mask_detection, cursor="hand2", font = ("times new roman", 18, "bold"),bg = "white", fg = "#191970")
-        button4.place(x=850, y=600, width=350, height=40)
+        #button
+        button4 = Button(f_lbl,text="Mask Detection", command=self.face_mask_detection, cursor="hand2", font = ("times new roman", 18, "bold"),bg = "white", fg = "pink")
+        button4.place(x=900, y=600, width=200, height=40)
 
         # Load mask detector models
         prototxtPath = r"face_detector\deploy.prototxt"
