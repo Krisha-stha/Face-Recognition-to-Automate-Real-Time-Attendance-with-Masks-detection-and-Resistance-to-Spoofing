@@ -27,27 +27,27 @@ class Attendance:
         self.var_atten_attendance = StringVar()
 
         # first image
-        img = Image.open(r"my_images\student_image1.jpeg")
-        img = img.resize((800, 200),Image.ANTIALIAS)
+        img = Image.open(r"my_images\studentpageup.jpeg")
+        img = img.resize((1530, 200),Image.ANTIALIAS)
         self.photoimg=ImageTk.PhotoImage(img)
 
         f_lbl = Label(self.root,image=self.photoimg)
-        f_lbl.place(x=0,y=0,width=800,height=200) 
+        f_lbl.place(x=0,y=0,width=1530,height=200) 
 
-        # second image
-        img1 = Image.open(r"my_images\student_image1.jpeg")
-        img1 = img1.resize((800, 200),Image.ANTIALIAS)
-        self.photoimg1=ImageTk.PhotoImage(img1)
+        # # second image
+        # img1 = Image.open(r"my_images\student_image1.jpeg")
+        # img1 = img1.resize((800, 200),Image.ANTIALIAS)
+        # self.photoimg1=ImageTk.PhotoImage(img1)
 
         # background image
-        img3 = Image.open(r"my_images\bgimg.jpeg")
+        img3 = Image.open(r"my_images\studentpageup.jpeg")
         img3 = img3.resize((1530, 710),Image.ANTIALIAS)
         self.photoimg3=ImageTk.PhotoImage(img3)
 
         bg_image = Label(self.root,image=self.photoimg3)
         bg_image.place(x=0,y=200,width=1530,height=710) 
 
-        title_lbl = Label(bg_image, text = "Attendance Management System", font = ("times new roman", 35, "bold"),bg = "white", fg = "blue")
+        title_lbl = Label(bg_image, text = "Attendance Management System", font = ("times new roman", 35, "bold"),bg = "white", fg = "#191970")
         title_lbl.place(x = 0, y = 0, width = 1530, height = 55)
 
         main_frame=Frame(bg_image, bd=2, bg="white")
@@ -57,7 +57,7 @@ class Attendance:
         Left_frame = LabelFrame(main_frame, bd=2, bg="white", relief=RIDGE, text="Attendance Details", font=("times new roman", 12, "bold"))
         Left_frame.place(x=10, y=10, width=760, height=580)
 
-        img_left = Image.open(r"my_images\details.jpeg")
+        img_left = Image.open(r"my_images\attendin.jpeg")
         img_left = img_left.resize((720, 130),Image.ANTIALIAS)
         self.photoimg_left=ImageTk.PhotoImage(img_left)
         
@@ -124,19 +124,19 @@ class Attendance:
         btn_frame.place(x=0, y=300, width=715, height=35)
 
         #Import
-        import_btn=Button(btn_frame, text="Import CSV", command=self.importCsv,width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
+        import_btn=Button(btn_frame, text="Import CSV", command=self.importCsv,width = 19, font = ("times new roman", 12, "bold"), bg="#447cc4", fg="white")
         import_btn.grid(row=0, column=0)
 
         # Export
-        export_btn=Button(btn_frame, text="Export CSV", command=self.exportCsv,width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
+        export_btn=Button(btn_frame, text="Export CSV", command=self.exportCsv,width = 19, font = ("times new roman", 12, "bold"), bg="#447cc4", fg="white")
         export_btn.grid(row=0, column=1)
 
         # Update
-        update_btn=Button(btn_frame, text="Update", width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
+        update_btn=Button(btn_frame, text="Update", width = 19, font = ("times new roman", 12, "bold"), bg="#447cc4", fg="white")
         update_btn.grid(row=0, column=2)
 
         # Reset
-        reset_btn=Button(btn_frame, text="Reset", command=self.reset_data, width = 19, font = ("times new roman", 12, "bold"), bg="blue", fg="white")
+        reset_btn=Button(btn_frame, text="Reset", command=self.reset_data, width = 19, font = ("times new roman", 12, "bold"), bg="#447cc4", fg="white")
         reset_btn.grid(row=0, column=3)
 
         # right label frame
@@ -180,8 +180,8 @@ class Attendance:
 
         self.AttendanceReportTable.bind("<ButtonRelease>", self.get_cursor)
 
-        f_lbl = Label(self.root,image=self.photoimg1)
-        f_lbl.place(x=800,y=0,width=800,height=180) 
+        # f_lbl = Label(self.root,image=self.photoimg1)
+        # f_lbl.place(x=800,y=0,width=800,height=180) 
 
 
     ########################fetch data###############################
